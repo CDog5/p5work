@@ -10,7 +10,7 @@ class Node {
         this.i = i;
         this.j = j;
         this.links = [];
-        this.wall = (random(1) < 0.2)
+        this.wall = (random(1) < 0.4)
     }
 
     scale(amount) {
@@ -31,36 +31,26 @@ class PathFinder {
         this.openSet = {};
         this.closedSet = {};
         this.cameFrom = {};
-        this.wentTo = {};
         this.gScore = {};
         this.fScore = {};
         this.heuristic = heuristic;
         this.totalPath = [];
-    }
-
-    getPathSoFar() {
-        let pathSoFar = [];
-
-        let id = this.startId;
-        while (this.wentTo[id]) {
-            id = this.wentTo[id];
-            pathSoFar.push(this.nodes[id]);
-        }
-
-        return pathSoFar;
+        this.complete = false;
+        this.failed = false;
     }
 
     update() {
-        if (this.totalPath.length > 0) {
+        if (this.complete) {
             return;
         }
 
         if (Object.keys(this.openSet).length > 0) {
             let currentId;
 
+            // Find the lowest fScore value
             Object.keys(this.openSet).forEach(openSetId => {
                 if (currentId) {
-                    if (this.fScore[currentId] < this.fScore[openSetId]) {
+                    if (this.fScore[currentId] > this.fScore[openSetId]) {
                         currentId = openSetId;
                     }
                 } else {
@@ -68,19 +58,30 @@ class PathFinder {
                 }
             })
 
+            //console.log('Current Id', currentId);
+            //console.log('End Id', this.endId);
+
             if (currentId == this.endId) {
                 console.log('We made it');
 
                 this.totalPath = []
                 this.totalPath.push(this.nodes[currentId]);
-                while (this.cameFrom[currentId]) {
-                    currentId = this.cameFrom[currentId];
-                    this.totalPath.push(this.nodes[currentId]);
+                let tempC = currentId;
+                while (this.cameFrom[tempC]) {
+                    tempC = this.cameFrom[tempC];
+                    this.totalPath.push(this.nodes[tempC]);
                 }
-
-                console.log('Total Path', this.totalPath);
-
+                this.complete = true;
                 return;
+            } else {
+                // Do nothing
+                this.totalPath = []
+                this.totalPath.push(this.nodes[currentId]);
+                let tempC = currentId;
+                while (!!this.cameFrom[tempC]) {
+                    tempC = this.cameFrom[tempC];
+                    this.totalPath.push(this.nodes[tempC]);
+                }
             }
 
             delete(this.openSet[currentId]);
@@ -89,22 +90,24 @@ class PathFinder {
             this.nodes[currentId].links
                 .filter(link => !(this.closedSet[link.other.id]))
                 .forEach(link => {
-                    if (!this.openSet[link.other.id]) {
-                        this.openSet[link.other.id] = true;
-                    }
-
+                    // Ensure the neighbor is in the open set
+                    this.openSet[link.other.id] = true;
+    
                     let tempG = this.gScore[currentId] + 1;
                     let existingG = this.gScore[link.other.id];
                     
-                    if ((!existingG) || (tempG <= existingG)) {
-                        this.cameFrom[link.other.id] = currentId;
-                        this.wentTo[currentId] = link.other.id;
-                        this.gScore[link.other.id] = tempG;
-                        this.fScore[link.other.id] = this.gScore[link.other.id] + this.heuristic(this.nodes[currentId], link.other);
-                    } else {
-
+                    if ((!!existingG) && (tempG > existingG)) {
+                        return;
                     }
+
+                    this.cameFrom[link.other.id] = currentId;
+                    this.gScore[link.other.id] = tempG;
+                    this.fScore[link.other.id] = this.gScore[link.other.id] + this.heuristic(this.nodes[currentId], link.other);
                 });
+        } else {
+            console.log('Failed to find path');
+            this.complete = true;
+            this.failed = true;
         }
     }
 
@@ -113,7 +116,9 @@ class PathFinder {
         this.endId = endId;
         this.openSet[this.startId] = true;
         this.gScore[this.startId] = 0;
-        this.fScore[this.startId] = this.heuristic(this.nodes[this.startId], this.nodes[this.endId])
+        this.fScore[this.startId] = this.heuristic(this.nodes[this.startId], this.nodes[this.endId]);
+        this.nodes[this.startId].wall = false;
+        this.nodes[this.endId].wall = false;
     }
 
     getStart() {
