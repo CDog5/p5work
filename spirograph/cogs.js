@@ -1,37 +1,45 @@
 class Cog {
 
-    constructor(radius, angularVelocity, radialOffset) {
+    constructor(radius, angularVelocity) {
         this.children = [];
-        this.angle = 0;
-        this.radius = radius;
-        this.radialOffset = radialOffset || 0;
+        this.relativePosition = createVector(radius, 0);
         this.angularVelocity = angularVelocity;
-        this.drawPoint = false;
-        this.drawCog = false;
     }
 
-    update() {
-        this.angle += this.angularVelocity;
-        this.children.forEach(c => c.update());
+    update(parentPosition) {
+        this.parentPosition = parentPosition;
+        this.relativePosition.rotate(this.angularVelocity);
+        this.position = p5.Vector.add(parentPosition, this.relativePosition);
+        this.children.forEach(c => c.update(this.position));
     }
 
-    draw() {
-        push();
-        translate(this.radialOffset, 0);
-        rotate(this.angle);
-        if (this.drawCog) {
-            strokeWeight(1);
-            ellipse(0, 0, this.radius, this.radius);
-        }
-        if (this.drawPoint) {
-            strokeWeight(10);
-            point(0, 0);
-        }
-        this.children.forEach(c => c.draw());
-        pop();
+    iterate(receiver) {
+        receiver(this);
+        this.children.forEach(c => c.iterate(receiver));
     }
 
     addChild(child) {
         this.children.push(child);
+    }
+}
+
+class PointEmitter {
+    constructor(receiver, minDistance) {
+        this.receiver = receiver;
+        this.minDistance;
+        this.lastPoint = undefined;
+    }
+
+    addPoint(p) {
+        if (!!this.lastPoint) {
+            let d = dist(p.x, p.y, this.lastPoint.x, this.lastPoint.y);
+            if (d > MIN_DISTANCE) {
+                this.receiver(p);
+                this.lastPoint = p;
+            }
+        } else {
+            this.receiver(p);
+            this.lastPoint = p;
+        }
     }
 }
