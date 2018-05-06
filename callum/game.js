@@ -6,29 +6,55 @@ const WHITE = 255
 // This function gets called once at the start
 function setup() {
   createCanvas(640, 480)
-
 }
 
-// This function gets called every frame
-var x = 400
-var y = 200
-function draw() {
-    background('blue');
-    rect(x,y,60,60);
-}
- function keyTyped() {
-     //console.log(x, y);
-    if (key == 'w'){
-        if (y == 0){}
-        else {y -= 10}
-    } else if (key == 'a'){
-        if (x == 0){}
-        else {x -= 10}
-    } else if (key == 's'){
-        if (y == 410){}
-        else {y += 10}
-    } else if (key == 'd'){
-        if (x == 570){}
-        else {x += 10}
+class Player {
+    constructor() {
+        this.x = 400;
+        this.y = 200;
+    }
+
+    moveLeft(){
+        if (this.x > 0){
+            this.x -= 5;
+        }
+    }
+            
+    moveRight(){
+        if (this.x > 0){
+            this.x += 5;
+        }
     }
 }
+
+
+var player = new Player();
+
+// This is called inside a forever loop
+function draw() {
+    background('blue');
+    noStroke();
+    rect(player.x, player.y, 60, 60);
+
+    rect(width / 2, height - 180, 20, 180)
+
+    if (keyIsDown(LEFT_ARROW)) {
+        player.moveLeft()
+    }
+    if (keyIsDown(RIGHT_ARROW)) {
+        player.moveRight()
+    }
+    if (keyIsDown(UP_ARROW)) {
+        if (y > 0){
+            y -= 5
+        }
+    }
+    if (keyIsDown(DOWN_ARROW)) {
+        if (y < height - 60)
+            y += 5
+    }
+}
+
+
+
+
