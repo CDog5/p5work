@@ -1,17 +1,35 @@
-const TIME_INTERVAL = 0.1;
-const RADIUS = 150
-const LIGHT_GREY = 150
-const WHITE = 255
+class Obstacle {
+    constructor() {
+        this.width = 20
+        this.height = Math.random() * 100;
+        this.x = width;
+        this.y = height - this.height;
+        this.finished = false;
+        
+    }
 
-// This function gets called once at the start
-function setup() {
-  createCanvas(640, 480)
+    moveLeft() {
+        if (this.x > 0){
+            this.x -= 5;
+        } else {
+            this.finished = true
+        } 
+    }
+
+    draw(){
+        rect(this.x, this.y,this.width, this.height)
+    } 
 }
 
 class Player {
     constructor() {
         this.x = 400;
         this.y = 200;
+    }
+
+
+    draw(){
+        rect(this.x, this.y, 60, 60);  
     }
 
     moveLeft(){
@@ -21,40 +39,60 @@ class Player {
     }
             
     moveRight(){
-        if (this.x > 0){
+        if (this.x < width - 60){
             this.x += 5;
+        }
+    }
+    moveUp(){
+        if (this.y > 0){
+            this.y -= 5
+
+        }
+    }
+    moveDown(){
+        if (this.y < height - 60){
+            this.y += 5
         }
     }
 }
 
+let player;
+let obstacle;
 
-var player = new Player();
+// This function gets called once at the start
+function setup() {
+    createCanvas(640, 480);
+
+    player = new Player();
+    obstacle = new Obstacle();
+}
 
 // This is called inside a forever loop
 function draw() {
     background('blue');
     noStroke();
-    rect(player.x, player.y, 60, 60);
+    player.draw();
+    obstacle.draw();
 
-    rect(width / 2, height - 180, 20, 180)
+    obstacle.moveLeft();
+    if (obstacle.finished) {
+        obstacle = new Obstacle()
+    }
 
     if (keyIsDown(LEFT_ARROW)) {
-        player.moveLeft()
+        player.moveLeft();
     }
     if (keyIsDown(RIGHT_ARROW)) {
-        player.moveRight()
+        player.moveRight();
     }
     if (keyIsDown(UP_ARROW)) {
-        if (y > 0){
-            y -= 5
-        }
+        player.moveUp();
     }
     if (keyIsDown(DOWN_ARROW)) {
-        if (y < height - 60)
-            y += 5
+        player.moveDown();
     }
-}
 
+}
 
 
 
