@@ -9,8 +9,8 @@ class Sun {
 }
 
 class Planet {
-    constructor () {
-        this.pos = createVector(350, 10)
+    constructor (initialPos) {
+        this.pos = initialPos;
         this.vel = createVector(1.5 , 0)
         this.acc = createVector()
     }
@@ -29,13 +29,18 @@ class Planet {
 }
 
 let sun 
-let planet
+let planets = []
 
 // This function gets called once at the starts
 function setup() {
     createCanvas(640, 480);
     sun = new Sun()
-    planet = new Planet()
+}
+
+function mouseDragged(){
+    let planet = new Planet(createVector(mouseX,mouseY))
+    console.log("New Planet Created.")
+    planets.push(planet)
 }
 
 // This is called inside a forever loop
@@ -46,15 +51,19 @@ function draw() {
     // Calculate some forces
     let gravity = createVector(0 , 0.1)
     let wind = createVector(0.05 , 0)
-    let sunsGravity = p5.Vector.sub(sun.pos, planet.pos);
-    sunsGravity.setMag(0.1)
 
     // Apply forces to the planet
     //planet.applyForce(gravity)
     //planet.applyForce(wind) 
-    planet.applyForce(sunsGravity);
+    planets.forEach(planet => {
+        let sunsGravity = p5.Vector.sub(sun.pos, planet.pos);
+        let d = sunsGravity.mag();
+        sunsGravity.setMag(1000.0 / (d*d))
 
-    // Update and Draw
-    planet.update()
-    planet.draw()
+        planet.applyForce(sunsGravity);
+
+        // Update and Draw
+        planet.update()
+        planet.draw()
+    }) 
 }
