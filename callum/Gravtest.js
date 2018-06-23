@@ -1,34 +1,43 @@
 class Sun {
-    constructor () {
+    constructor() {
         this.pos = createVector(250, 250)
     }
-    draw(){
-        fill ('goldenrod')
-        ellipse(this.pos.x, this.pos.y , 50 , 50)
+    draw() {
+        fill('goldenrod')
+        ellipse(this.pos.x, this.pos.y, 50, 50)
     }
 }
 
+const MAX_AGE = 200;
+
 class Planet {
-    constructor (initialPos) {
+    constructor(initialPos) {
         this.pos = initialPos;
-        this.vel = createVector(1.5 , 0)
+        this.vel = createVector(1.5, 0)
         this.acc = createVector()
+        this.age = 0;
+    
     }
-    draw(){
-        fill ('red')
-        ellipse(this.pos.x, this.pos.y , 30 , 30)
+    isAlive() {
+        return this.age < MAX_AGE;
     }
-    update(){
-        this.vel.add(this.acc) 
-       this.pos.add(this.vel)
-       this.acc.mult(0)
+    draw() {
+        fill('red')
+        let radius = map(this.age, 0, MAX_AGE, 30, 0);
+        ellipse(this.pos.x, this.pos.y, radius, radius)
     }
-    applyForce(force){
+    update() {
+        this.vel.add(this.acc)
+        this.pos.add(this.vel)
+        this.acc.mult(0)
+        this.age++;
+    }
+    applyForce(force) {
         this.acc.add(force)
     }
 }
 
-let sun 
+let sun
 let planets = []
 
 // This function gets called once at the starts
@@ -37,8 +46,8 @@ function setup() {
     sun = new Sun()
 }
 
-function mouseDragged(){
-    let planet = new Planet(createVector(mouseX,mouseY))
+function mouseDragged() {
+    let planet = new Planet(createVector(mouseX, mouseY))
     console.log("New Planet Created.")
     planets.push(planet)
 }
@@ -49,8 +58,8 @@ function draw() {
     sun.draw()
 
     // Calculate some forces
-    let gravity = createVector(0 , 0.1)
-    let wind = createVector(0.05 , 0)
+    let gravity = createVector(0, 0.1)
+    let wind = createVector(0.05, 0)
 
     // Apply forces to the planet
     //planet.applyForce(gravity)
@@ -58,12 +67,14 @@ function draw() {
     planets.forEach(planet => {
         let sunsGravity = p5.Vector.sub(sun.pos, planet.pos);
         let d = sunsGravity.mag();
-        sunsGravity.setMag(1000.0 / (d*d))
+        sunsGravity.setMag(1000.0 / (d * d))
 
         planet.applyForce(sunsGravity);
 
         // Update and Draw
-        planet.update()
-        planet.draw()
-    }) 
+        planet.update();
+        planet.draw();
+    });
+    planets = planets.filter( p => p.isAlive() )
+
 }
